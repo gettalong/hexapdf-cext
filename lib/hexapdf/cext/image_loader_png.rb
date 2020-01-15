@@ -15,27 +15,27 @@ module HexaPDF
 
         flate_decode = @document.config.constantize('filter.map', :FlateDecode)
         source = flate_decode.decoder(Fiber.new(&image_data_proc(offset)))
-        ideflater = Zlib::Deflate.new(HexaPDF::GlobalConfiguration['filter.flate_compression'],
-                                     Zlib::MAX_WBITS,
-                                     HexaPDF::GlobalConfiguration['filter.flate_memory'])
-        mdeflater = Zlib::Deflate.new(HexaPDF::GlobalConfiguration['filter.flate_compression'],
-                                     Zlib::MAX_WBITS,
-                                     HexaPDF::GlobalConfiguration['filter.flate_memory'])
+        image_deflate = Zlib::Deflate.new(HexaPDF::GlobalConfiguration['filter.flate_compression'],
+                                          Zlib::MAX_WBITS,
+                                          HexaPDF::GlobalConfiguration['filter.flate_memory'])
+        mask_deflate = Zlib::Deflate.new(HexaPDF::GlobalConfiguration['filter.flate_compression'],
+                                         Zlib::MAX_WBITS,
+                                         HexaPDF::GlobalConfiguration['filter.flate_memory'])
         data = ''.b
-        mresult = ''.b
-        iresult = ''.b
+        image_temp = ''.b
+        mask_temp = ''.b
         while source.alive? && (new_data = source.resume)
           data << new_data
-          iresult.clear
-          mresult.clear
+          image_temp.clear
+          mask_temp.clear
           HexaPDFCExt.separate_alpha_channel_loop(data, bytes_per_row, bytes_per_colors,
-                                                  bytes_per_alpha, iresult, mresult)
+                                                  bytes_per_alpha, image_temp, mask_temp)
           data = data[-(data.length % bytes_per_row)..-1]
-          image_data << ideflater.deflate(iresult)
-          mask_data << mdeflater.deflate(mresult)
+          image_data << image_deflate.deflate(image_temp)
+          mask_data << mask_deflate.deflate(mask_temp)
         end
-        image_data << ideflater.finish
-        mask_data << mdeflater.finish
+        image_data << image_deflate.finish
+        mask_data << mask_deflate.finish
 
         return [image_data, mask_data]
       end
