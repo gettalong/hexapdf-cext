@@ -30,7 +30,6 @@ module HexaPDF
           mask_temp.clear
           HexaPDFCExt.separate_alpha_channel_loop(data, bytes_per_row, bytes_per_colors,
                                                   bytes_per_alpha, image_temp, mask_temp)
-          data = data[-(data.length % bytes_per_row)..-1]
           image_data << image_deflate.deflate(image_temp)
           mask_data << mask_deflate.deflate(mask_temp)
         end

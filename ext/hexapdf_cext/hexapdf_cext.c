@@ -13,8 +13,9 @@ VALUE separate_alpha_channel_loop(VALUE self, VALUE data, VALUE bytes_per_row, V
   long bpa = NUM2LONG(bytes_per_alpha);
   char* data_ptr = RSTRING_PTR(data);
   long data_length = RSTRING_LEN(data);
+  char* current;
 
-  for (char* current = data_ptr; bpr <= data_length; data_length -= bpr) {
+  for (current = data_ptr; current - data_ptr + bpr <= data_length;) {
     char* end = current + bpr;
     rb_str_cat(image_data, current, 1);
     rb_str_cat(mask_data, current, 1);
@@ -27,7 +28,7 @@ VALUE separate_alpha_channel_loop(VALUE self, VALUE data, VALUE bytes_per_row, V
     }
   }
 
-  return Qnil;
+  return rb_str_drop_bytes(data, current - data_ptr);
 }
 
 void Init_hexapdf_cext() {
