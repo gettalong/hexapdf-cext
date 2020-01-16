@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
 
   s.extensions = ['ext/hexapdf_cext/extconf.rb']
   s.require_path = 'lib'
+  s.add_dependency('hexapdf')
   s.add_development_dependency('rake-compiler')
   s.required_ruby_version = '>= 2.4'
 
